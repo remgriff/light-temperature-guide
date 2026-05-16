@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💡 Light Temperature Guide</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0f0f14;
+  color: #f0f0f0;
+  min-height: 100vh;
+  padding: 28px 20px 40px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+h1 { text-align: center; font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+.subtitle { text-align: center; font-size: 0.82rem; color: #666; margin-bottom: 28px; }
+
+/* SPECTRUM */
+.spectrum-wrap { position: relative; height: 52px; border-radius: 12px; overflow: hidden; margin-bottom: 6px; }
+.spectrum-bar {
+  width: 100%; height: 100%;
+  background: linear-gradient(to right,
+    #ff6a00 0%, #ff8c30 12%, #ffaa55 26%, #ffbf70 36%,
+    #ffd599 50%, #fff0cc 62%, #fffde8 72%, #f0f8ff 82%,
+    #dceeff 91%, #cce0ff 100%);
+}
+.needle {
+  position: absolute; top: 0; width: 3px; height: 100%;
+  background: white; border-radius: 2px;
+  box-shadow: 0 0 10px rgba(255,255,255,0.9);
+  transform: translateX(-50%);
+  transition: left 0.1s ease;
+  pointer-events: none;
+}
+.spectrum-labels {
+  display: flex; justify-content: space-between;
+  font-size: 0.65rem; color: #555; margin-bottom: 20px; padding: 0 2px;
+}
+.zone-badges {
+  display: flex; gap: 8px; justify-content: center;
+  margin-bottom: 22px; flex-wrap: wrap;
+}
+.zone-badge {
+  padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 600;
+  border: 1px solid;
+}
+
+/* SLIDER */
+.slider-section { margin-bottom: 26px; }
+.slider-row { display: flex; align-items: center; gap: 14px; }
+input[type=range] {
+  flex: 1; -webkit-appearance: none; height: 6px;
+  border-radius: 3px; background: #2a2a2a; outline: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 24px; height: 24px;
+  border-radius: 50%; background: white;
+  box-shadow: 0 0 12px rgba(255,255,255,0.5); cursor: pointer;
+}
+.k-display { font-size: 1.6rem; font-weight: 700; min-width: 90px; text-align: right; font-variant-numeric: tabular-nums; }
+.k-name { text-align: center; font-size: 0.95rem; font-weight: 500; margin-top: 8px; height: 22px; }
+
+/* PRESETS */
+.presets { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 28px; }
+.preset-btn {
+  padding: 6px 14px; border-radius: 20px; border: 1.5px solid #2a2a2a;
+  background: transparent; color: #aaa; font-size: 0.75rem; cursor: pointer;
+  transition: all 0.15s; white-space: nowrap;
+}
+.preset-btn:hover { color: white; border-color: currentColor; }
+.preset-btn.active { color: white; border-color: currentColor; background: rgba(255,255,255,0.05); }
+
+/* ROOMS */
+.section-title { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: #444; margin-bottom: 12px; }
+.rooms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 28px; }
+@media (min-width: 600px) { .rooms-grid { grid-template-columns: repeat(4, 1fr); } }
+.room-card { border-radius: 12px; overflow: hidden; position: relative; border: 2px solid transparent; }
+.room-canvas { width: 100%; height: 120px; display: block; }
+.room-label {
+  position: absolute; bottom: 6px; left: 8px;
+  font-size: 0.7rem; font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9); color: white;
+}
+.room-badge {
+  position: absolute; top: 6px; right: 6px;
+  font-size: 0.6rem; padding: 2px 6px; border-radius: 8px;
+}
+.room-badge.good { background: rgba(70,180,70,0.3); color: #80e880; border: 1px solid rgba(70,180,70,0.4); }
+.room-badge.bad  { background: rgba(0,0,0,0.45); color: #888; }
+
+/* INFO CARD */
+.info-card {
+  border-radius: 14px; padding: 18px; margin-bottom: 20px;
+  border: 1px solid #222; background: #13131a;
+}
+.info-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; }
+.info-row { display: flex; gap: 8px; margin-bottom: 9px; font-size: 0.8rem; line-height: 1.5; color: #bbb; align-items: flex-start; }
+.info-icon { font-size: 1rem; flex-shrink: 0; }
+
+/* TABLE */
+.ref-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+.ref-table th { text-align: left; color: #444; font-weight: 600; padding: 5px 8px; border-bottom: 1px solid #1e1e1e; }
+.ref-table td { padding: 8px 8px; border-bottom: 1px solid #181818; color: #ccc; vertical-align: middle; }
+.ref-table tr:last-child td { border-bottom: none; }
+.ref-table tr.active-row td { background: rgba(255,255,255,0.04); }
+.swatch { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: middle; flex-shrink: 0; }
+.sleep-good { color: #70c870; }
+.sleep-mid  { color: #d0b050; }
+.sleep-bad  { color: #d06060; }
+
+/* TIPS BOX */
+.tips-box {
+  border-radius: 12px; padding: 16px; background: #0a1020;
+  border: 1px solid #1a2a40; margin-top: 8px;
+}
+.tips-box h3 { color: #7eb8ff; font-size: 0.9rem; margin-bottom: 10px; }
+.tip-row { font-size: 0.78rem; color: #9ab8d8; margin-bottom: 7px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<h1>💡 Light Temperature Guide</h1>
+<p class="subtitle">Understand Kelvin ratings to choose the right LED bulbs for every room</p>
+
+<!-- SPECTRUM -->
+<div class="spectrum-wrap">
+  <div class="spectrum-bar"></div>
+  <div class="needle" id="needle"></div>
+</div>
+<div class="spectrum-labels">
+  <span>1800K</span><span>2700K</span><span>3500K</span><span>4500K</span><span>5500K</span><span>7000K</span>
+</div>
+<div class="zone-badges">
+  <div class="zone-badge" style="color:#ffaa55;border-color:rgba(255,170,85,0.4);background:rgba(255,170,85,0.08)">🔥 Warm 1800–3200K</div>
+  <div class="zone-badge" style="color:#ffd599;border-color:rgba(255,213,153,0.35);background:rgba(255,213,153,0.06)">⚖️ Neutral 3200–5000K</div>
+  <div class="zone-badge" style="color:#bbd4ff;border-color:rgba(187,212,255,0.35);background:rgba(187,212,255,0.06)">❄️ Cool 5000–7000K</div>
+</div>
+
+<!-- SLIDER -->
+<div class="slider-section">
+  <div class="slider-row">
+    <input type="range" id="slider" min="1800" max="7000" value="2700" step="50">
+    <div class="k-display" id="kDisplay">2700K</div>
+  </div>
+  <div class="k-name" id="kName">Warm White — Cozy, relaxing</div>
+</div>
+
+<!-- PRESETS -->
+<div class="presets" id="presets"></div>
+
+<!-- ROOM PREVIEW -->
+<div class="section-title">Room Preview</div>
+<div class="rooms-grid" id="roomsGrid"></div>
+
+<!-- INFO CARD -->
+<div class="info-card" id="infoCard">
+  <h3 id="infoTitle">Characteristics</h3>
+  <div id="infoBody"></div>
+</div>
+
+<!-- TABLE -->
+<div class="info-card">
+  <h3>Complete Kelvin Reference</h3>
+  <table class="ref-table" id="refTable"></table>
+</div>
+
+<!-- TIPS -->
+<div class="tips-box">
+  <h3>💡 Pro Tips for Buying LEDs</h3>
+  <div class="tip-row">⭐ <strong>Mix temperatures:</strong> 2700K in bedroom/living room + 4000K in kitchen/bathroom is the classic home combo.</div>
+  <div class="tip-row">⭐ <strong>Check CRI (Color Rendering Index):</strong> aim for CRI 90+ so colours look natural and accurate under the light.</div>
+  <div class="tip-row">⭐ <strong>Dimmable bulbs:</strong> a dimmable 2700K bulb gets even warmer when dimmed, perfect for evenings.</div>
+  <div class="tip-row">⭐ <strong>Sleep hygiene:</strong> avoid 5000K+ bulbs in rooms you use 2 hours before bed — blue-rich light suppresses melatonin.</div>
+  <div class="tip-row">⭐ <strong>Lumens, not Watts:</strong> for LED, look at lumens for brightness. ~800lm ≈ old 60W bulb; ~450lm ≈ old 40W.</div>
+</div>
+
+<script>
+const DATA = [
+  { k:1800, name:"Candlelight",    short:"Ultra Warm",   color:"#ff6a00", mood:"Romantic, intimate",    rooms:["bedroom","dining"],              sleep:"good", eye:"OK for ambiance, dim for reading" },
+  { k:2200, name:"Vintage Warm",   short:"Very Warm",    color:"#ff8c30", mood:"Nostalgic, cozy",       rooms:["bedroom","living","dining"],     sleep:"good", eye:"Comfortable" },
+  { k:2700, name:"Warm White",     short:"Incandescent", color:"#ffaa55", mood:"Warm, relaxing",        rooms:["bedroom","living","dining","bathroom"], sleep:"good", eye:"Comfortable" },
+  { k:3000, name:"Soft White",     short:"Warm Neutral", color:"#ffbf70", mood:"Inviting, lively",      rooms:["kitchen","bathroom","living"],   sleep:"good", eye:"Good" },
+  { k:3500, name:"Neutral White",  short:"Neutral",      color:"#ffd599", mood:"Balanced, versatile",   rooms:["kitchen","office","bathroom"],   sleep:"mid",  eye:"Very good" },
+  { k:4000, name:"Cool White",     short:"Cool Neutral", color:"#fff0cc", mood:"Alert, focused",        rooms:["kitchen","office","bathroom"],   sleep:"mid",  eye:"Best for tasks" },
+  { k:5000, name:"Daylight",       short:"Daylight",     color:"#fffde8", mood:"Energizing, clinical",  rooms:["office","bathroom"],             sleep:"bad",  eye:"Excellent colour rendering" },
+  { k:5500, name:"Bright Daylight",short:"Cool White",   color:"#f0f8ff", mood:"Clinical, very bright", rooms:["office"],                        sleep:"bad",  eye:"Can cause fatigue" },
+  { k:6500, name:"Cool Daylight",  short:"Cold White",   color:"#dceeff", mood:"Sterile, alert",        rooms:[],                                sleep:"bad",  eye:"Not for extended home use" },
+  { k:7000, name:"Ultra Cool",     short:"Blue-White",   color:"#cce0ff", mood:"Very clinical",         rooms:[],                                sleep:"bad",  eye:"Not recommended at home" },
+];
+
+const ROOMS = [
+  { id:"bedroom",  label:"🛏️ Bedroom",     recommended:[1800,3000] },
+  { id:"living",   label:"🛋️ Living Room", recommended:[2700,3500] },
+  { id:"kitchen",  label:"🍳 Kitchen",     recommended:[3000,4000] },
+  { id:"office",   label:"💻 Home Office", recommended:[4000,5000] },
+];
+
+const PRESETS = [
+  { label:"🕯️ Candle",   k:1800 },
+  { label:"🛏️ Bedroom",  k:2700 },
+  { label:"🛋️ Living",   k:3000 },
+  { label:"🍳 Kitchen",  k:3500 },
+  { label:"💡 Office",   k:4000 },
+  { label:"☀️ Daylight", k:5000 },
+];
+
+let currentK = 2700;
+
+function kToRGB(k) {
+  const stops = [
+    [1800,[255,106,0]],[2200,[255,140,48]],[2700,[255,170,85]],
+    [3000,[255,191,112]],[3500,[255,213,153]],[4000,[255,240,204]],
+    [5000,[255,253,232]],[5500,[240,248,255]],[6500,[220,238,255]],[7000,[204,224,255]]
+  ];
+  for (let i=0;i<stops.length-1;i++){
+    const [k0,c0]=stops[i],[k1,c1]=stops[i+1];
+    if(k>=k0&&k<=k1){const t=(k-k0)/(k1-k0);return c0.map((v,j)=>Math.round(v+t*(c1[j]-v)));}
+  }
+  return stops[stops.length-1][1];
+}
+
+function getNear(k){ return DATA.reduce((b,d)=>Math.abs(d.k-k)<Math.abs(b.k-k)?d:b); }
+
+function drawRoom(canvas, roomId, k){
+  const ctx=canvas.getContext("2d");
+  const W=canvas.width,H=canvas.height;
+  const [r,g,b]=kToRGB(k);
+  ctx.clearRect(0,0,W,H);
+  // Background wall
+  const wallG=ctx.createLinearGradient(0,0,0,H);
+  wallG.addColorStop(0,`rgb(${Math.round(r*.1)},${Math.round(g*.1)},${Math.round(b*.12)})`);
+  wallG.addColorStop(1,`rgb(${Math.round(r*.14)},${Math.round(g*.13)},${Math.round(b*.16)})`);
+  ctx.fillStyle=wallG; ctx.fillRect(0,0,W,H);
+  // Ceiling light glow
+  const glowG=ctx.createRadialGradient(W/2,-5,0,W/2,-5,W*.8);
+  glowG.addColorStop(0,`rgba(${r},${g},${b},0.55)`);
+  glowG.addColorStop(.55,`rgba(${r},${g},${b},0.15)`);
+  glowG.addColorStop(1,`rgba(${r},${g},${b},0)`);
+  ctx.fillStyle=glowG; ctx.fillRect(0,0,W,H);
+  // Floor
+  const fY=H*.68;
+  const floorG=ctx.createLinearGradient(0,fY,0,H);
+  floorG.addColorStop(0,`rgb(${Math.round(r*.18)},${Math.round(g*.14)},${Math.round(b*.1)})`);
+  floorG.addColorStop(1,`rgb(${Math.round(r*.07)},${Math.round(g*.06)},${Math.round(b*.04)})`);
+  ctx.fillStyle=floorG; ctx.fillRect(0,fY,W,H-fY);
+
+  if(roomId==="bedroom"){
+    ctx.fillStyle="rgba(0,0,0,0.5)";
+    ctx.fillRect(W*.1,fY-H*.26,W*.65,H*.26); // bed
+    ctx.fillStyle=`rgba(${r},${g},${b},0.15)`;
+    ctx.fillRect(W*.12,fY-H*.24,W*.28,H*.16); // pillow L
+    ctx.fillRect(W*.43,fY-H*.24,W*.28,H*.16); // pillow R
+    ctx.fillStyle="rgba(0,0,0,0.45)";
+    ctx.fillRect(W*.8,fY-H*.35,W*.05,H*.35); // lamp stand
+    ctx.fillStyle=`rgba(${r},${g},${b},0.45)`;
+    ctx.beginPath();ctx.moveTo(W*.73,fY-H*.35);ctx.lineTo(W*.93,fY-H*.35);
+    ctx.lineTo(W*.88,fY-H*.5);ctx.lineTo(W*.78,fY-H*.5);ctx.closePath();ctx.fill();
+  } else if(roomId==="living"){
+    ctx.fillStyle="rgba(0,0,0,0.5)";
+    ctx.fillRect(W*.05,fY-H*.22,W*.7,H*.22); // sofa body
+    ctx.fillRect(W*.05,fY-H*.34,W*.1,H*.15); // left arm
+    ctx.fillRect(W*.65,fY-H*.34,W*.1,H*.15); // right arm
+    ctx.fillRect(W*.08,fY-H*.38,W*.64,H*.1); // back
+    ctx.fillStyle="rgba(0,0,0,0.4)";
+    ctx.fillRect(W*.28,fY-H*.08,W*.3,H*.08); // coffee table
+  } else if(roomId==="kitchen"){
+    ctx.fillStyle="rgba(0,0,0,0.5)";
+    ctx.fillRect(0,fY-H*.28,W*.45,H*.28); // counter
+    ctx.fillRect(0,H*.08,W*.45,H*.22); // upper cabinet
+    ctx.fillStyle=`rgba(${r},${g},${b},0.12)`;
+    for(let i=0;i<2;i++){
+      ctx.beginPath();
+      ctx.arc(W*(.1+i*.15),fY-H*.32,W*.06,0,Math.PI*2);
+      ctx.stroke();
+      ctx.fillStyle=`rgba(${r},${g},${b},0.1)`;ctx.fill();
+    }
+    ctx.strokeStyle=`rgba(${r},${g},${b},0.3)`;ctx.lineWidth=1.5;
+  } else if(roomId==="office"){
+    ctx.fillStyle="rgba(0,0,0,0.5)";
+    ctx.fillRect(W*.06,fY-H*.12,W*.75,H*.06); // desk
+    ctx.fillRect(W*.06,fY-H*.12,W*.05,H*.12); // left leg
+    ctx.fillRect(W*.76,fY-H*.12,W*.05,H*.12); // right leg
+    ctx.fillRect(W*.28,fY-H*.44,W*.3,H*.32); // monitor
+    ctx.fillRect(W*.36,fY-H*.12,W*.14,H*.04); // stand
+    ctx.fillStyle=`rgba(${r},${g},${b},0.15)`;
+    ctx.fillRect(W*.3,fY-H*.42,W*.26,H*.28); // screen glow
+  }
+  // Bulb dot
+  ctx.beginPath();ctx.arc(W/2,6,5,0,Math.PI*2);
+  ctx.fillStyle=`rgb(${r},${g},${b})`;ctx.fill();
+}
+
+function renderRooms(){
+  const grid=document.getElementById("roomsGrid");
+  grid.innerHTML="";
+  ROOMS.forEach(room=>{
+    const card=document.createElement("div");
+    card.className="room-card";
+    const [lo,hi]=room.recommended;
+    const isGood=currentK>=lo-400&&currentK<=hi+400;
+
+    const canvas=document.createElement("canvas");
+    canvas.width=200;canvas.height=120;canvas.className="room-canvas";
+    const lbl=document.createElement("div");lbl.className="room-label";lbl.textContent=room.label;
+    const badge=document.createElement("div");
+    badge.className="room-badge "+(isGood?"good":"bad");
+    badge.textContent=isGood?"✓ Good fit":"Not ideal";
+
+    card.appendChild(canvas);card.appendChild(lbl);card.appendChild(badge);
+    grid.appendChild(card);
+    drawRoom(canvas,room.id,currentK);
+  });
+}
+
+function renderInfo(){
+  const d=getNear(currentK);
+  const [r,g,b]=kToRGB(currentK);
+  document.getElementById("infoTitle").textContent=`${d.name} (${currentK}K)`;
+  document.getElementById("infoTitle").style.color=`rgb(${r},${g},${b})`;
+  const roomNames={bedroom:"Bedroom",living:"Living Room",kitchen:"Kitchen",office:"Office",dining:"Dining Room",bathroom:"Bathroom"};
+  document.getElementById("infoBody").innerHTML=`
+    <div class="info-row"><span class="info-icon">🎭</span><span><strong>Mood:</strong> ${d.mood}</span></div>
+    <div class="info-row"><span class="info-icon">✅</span><span><strong>Best for:</strong> ${d.rooms.length?d.rooms.map(r=>roomNames[r]).join(", "):"Commercial/specialty use only"}</span></div>
+    <div class="info-row"><span class="info-icon">😴</span><span><strong>Sleep:</strong> ${d.sleep==="good"?"Melatonin-friendly — safe to use in evenings":d.sleep==="mid"?"Moderate effect — limit use 1–2h before bed":"High blue light — avoid in bedrooms and evening use"}</span></div>
+    <div class="info-row"><span class="info-icon">👁️</span><span><strong>Eye comfort:</strong> ${d.eye}</span></div>
+  `;
+}
+
+function renderTable(){
+  const tbl=document.getElementById("refTable");
+  tbl.innerHTML=`<tr><th>Kelvin</th><th>Name</th><th>Best rooms</th><th>Sleep</th></tr>`;
+  DATA.forEach(d=>{
+    const [r,g,b]=kToRGB(d.k);
+    const isActive=Math.abs(d.k-currentK)<200;
+    const roomIcons={bedroom:"🛏️",living:"🛋️",kitchen:"🍳",office:"💻",dining:"🍽️",bathroom:"🚿"};
+    const icons=d.rooms.slice(0,3).map(r=>roomIcons[r]||"").join(" ");
+    const tr=document.createElement("tr");
+    if(isActive)tr.className="active-row";
+    tr.innerHTML=`
+      <td><span class="swatch" style="background:rgb(${r},${g},${b})"></span>${d.k}K</td>
+      <td>${d.name}</td>
+      <td>${icons||"—"}</td>
+      <td class="sleep-${d.sleep}">${d.sleep==="good"?"😴 Friendly":d.sleep==="mid"?"🌙 Moderate":"⚠️ Disrupts"}</td>
+    `;
+    tbl.appendChild(tr);
+  });
+}
+
+function renderPresets(){
+  const container=document.getElementById("presets");
+  PRESETS.forEach(p=>{
+    const btn=document.createElement("button");
+    btn.className="preset-btn";btn.textContent=p.label;
+    const [r,g,b]=kToRGB(p.k);
+    btn.style.color=`rgb(${r},${g},${b})`;
+    btn.dataset.k=p.k;
+    btn.onclick=()=>{ document.getElementById("slider").value=p.k; update(); };
+    container.appendChild(btn);
+  });
+}
+
+function update(){
+  currentK=parseInt(document.getElementById("slider").value);
+  const [r,g,b]=kToRGB(currentK);
+  const col=`rgb(${r},${g},${b})`;
+  document.getElementById("kDisplay").textContent=currentK+"K";
+  document.getElementById("kDisplay").style.color=col;
+  const pct=(currentK-1800)/(7000-1800)*100;
+  document.getElementById("needle").style.left=pct+"%";
+  const d=getNear(currentK);
+  document.getElementById("kName").textContent=`${d.name} — ${d.mood}`;
+  document.getElementById("kName").style.color=col;
+  document.querySelectorAll(".preset-btn").forEach(btn=>{
+    btn.classList.toggle("active",Math.abs(parseInt(btn.dataset.k)-currentK)<150);
+  });
+  renderRooms();renderInfo();renderTable();
+}
+
+document.getElementById("slider").addEventListener("input",update);
+renderPresets();
+update();
+</script>
+</body>
+</html>
